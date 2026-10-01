@@ -1,1 +1,1 @@
-# BitacoraA00842213
+# Bitácora de viaje de Camila Adriana Portanda Polo para la materia Análisis y diseño de algoritmos avanzados. Tecnológico de Monterrey.
