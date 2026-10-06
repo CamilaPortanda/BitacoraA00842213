@@ -398,6 +398,7 @@
     font-weight: 600;
     line-height: 1.4;
   }
+  .note .note-fecha { margin: -2px 0 10px; font-size: 12px; opacity: 0.85; }
   .coments { margin: 14px 0 4px; padding-top: 12px; border-top: 1.5px dashed var(--panel-soft); }
   .coments h4 { margin: 0 0 8px; font: 700 12px var(--body); letter-spacing: 0.06em; text-transform: uppercase; }
   .coment { background: rgba(0, 0, 0, 0.22); border-radius: 10px; padding: 9px 11px; margin: 0 0 8px; }
@@ -487,7 +488,9 @@
       tipo: fila.tipo,
       color: fila.color,
       texto: fila.texto || '',
-      hecha: !!fila.hecha
+      hecha: !!fila.hecha,
+      creada_en: fila.creada_en,
+      actualizada_en: fila.actualizada_en
     };
   }
 
@@ -499,6 +502,16 @@
     try {
       return new Date(iso).toLocaleString('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
     } catch (e) { return ''; }
+  }
+
+  // "Creada: ... · Editada: ..." (Editada solo aparece si el contenido se cambió después).
+  function fechasDe(n) {
+    if (!n.creada_en) return '';
+    var txt = 'Creada: ' + formatoFecha(n.creada_en);
+    if (n.actualizada_en && (new Date(n.actualizada_en) - new Date(n.creada_en)) > 1000) {
+      txt += ' \u00B7 Editada: ' + formatoFecha(n.actualizada_en);
+    }
+    return txt;
   }
 
   // Orden estable por fecha: las notas del mismo día conservan su orden de creación.
@@ -851,7 +864,8 @@
           : notas.map(function (n) {
               return h('article', { key: n.id, className: 'note' + (n.hecha ? ' done' : '') },
                 h('h3', null, n.titulo,
-                  n.tipo === 'tarea' ? h('span', { className: 'badge' }, 'Tarea') : null),
+                n.tipo === 'tarea' ? h('span', { className: 'badge' }, 'Tarea') : null),
+                fechasDe(n) ? h('p', { className: 'note-fecha' }, fechasDe(n)) : null,
                 n.tipo === 'tarea'
                   ? (puede
                       ? h('label', { className: 'check' },
