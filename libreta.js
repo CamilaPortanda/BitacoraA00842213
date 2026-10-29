@@ -81,7 +81,7 @@
     '.lib-ficha .btn:hover { background: var(--pick); }',
     '.lib-ficha .btn.solid { background: var(--ink); color: var(--bg); }',
     '.lib-ficha .panel-error { background: transparent; border: 1.5px solid var(--today); color: var(--today); }'
-  ].join('\n');
+  ].join('\n') + '\n' + temaLibreta();
 
   if (!document.querySelector('style[data-libreta]')) {
     var estilo = document.createElement('style');
@@ -90,15 +90,204 @@
     document.head.appendChild(estilo);
   }
 
+  // ---------- Tema de libreta de estudio (hojas rayadas, anillos, separadores, marcatextos) ----------
+  function temaLibreta() {
+    function svg(x) { return 'url("data:image/svg+xml,' + encodeURIComponent(x) + '")'; }
+    // Anillos: dos agujeros y un alambre metálico que cruza el lomo (escritorio) o sale por arriba (móvil).
+    var anilloV = svg('<svg xmlns="http://www.w3.org/2000/svg" width="56" height="36" viewBox="0 0 56 36">' +
+      '<circle cx="7" cy="18" r="5" fill="#2e2c2a"/><circle cx="49" cy="18" r="5" fill="#2e2c2a"/>' +
+      '<rect x="7" y="15.2" width="42" height="5.6" rx="2.8" fill="#8b9097"/>' +
+      '<rect x="8" y="15.9" width="40" height="1.7" rx="0.85" fill="#e3e6ea"/>' +
+      '<rect x="8" y="19.3" width="40" height="1" rx="0.5" fill="#575c62" opacity="0.75"/></svg>');
+    var anilloH = svg('<svg xmlns="http://www.w3.org/2000/svg" width="36" height="34" viewBox="0 0 36 34">' +
+      '<circle cx="18" cy="26" r="5" fill="#2e2c2a"/>' +
+      '<rect x="15.2" y="3" width="5.6" height="23" rx="2.8" fill="#8b9097"/>' +
+      '<rect x="15.9" y="4" width="1.7" height="21" rx="0.85" fill="#e3e6ea"/>' +
+      '<rect x="19.3" y="4" width="1" height="21" rx="0.5" fill="#575c62" opacity="0.75"/></svg>');
+
+    var claro =
+      '--papel: #fffdf6; --raya: rgba(110, 150, 200, 0.30); --margen: rgba(214, 90, 90, 0.5); --tinta: #2b2b2b; --tinta-suave: #6d6b66; --sombra: rgba(50, 35, 20, 0.28);' +
+      '--p-azul: #1e5fb8; --p-verde: #17784a; --p-rojo: #c62828; --p-morado: #7a3fb0; --p-naranja: #b85a08; --p-turquesa: #0a7a8f;' +
+      '--mk-amarillo: #fff07a; --mk-verde: #b4f2c8; --mk-rosa: #ffc4dc; --mk-azul: #bfe3ff; --on-azul: #ffffff;';
+    var oscuro =
+      '--papel: #2a2927; --raya: rgba(140, 170, 215, 0.20); --margen: rgba(235, 125, 125, 0.45); --tinta: #ece8df; --tinta-suave: #aaa69c; --sombra: rgba(0, 0, 0, 0.55);' +
+      '--p-azul: #86b6ff; --p-verde: #6fd49b; --p-rojo: #ff8f86; --p-morado: #c9a0ff; --p-naranja: #ffb36b; --p-turquesa: #62d4e8;' +
+      '--mk-amarillo: rgba(255, 233, 60, 0.36); --mk-verde: rgba(105, 240, 174, 0.30); --mk-rosa: rgba(255, 128, 171, 0.34); --mk-azul: rgba(100, 181, 246, 0.34); --on-azul: #0d2342;';
+
+    return [
+      '.lib-libro { ' + claro + ' --manuscrita: "Caveat", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive; }',
+      '.lib-libro .lib-ficha { --acento-texto: var(--acento-t1); } .lib-libro .lib-grupo { --esc-texto: var(--esc-t1); }',
+      '@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .lib-libro { ' + oscuro + ' } :root:not([data-theme="light"]) .lib-libro .lib-ficha { --acento-texto: var(--acento-t2); } :root:not([data-theme="light"]) .lib-libro .lib-grupo { --esc-texto: var(--esc-t2); } }',
+      ':root[data-theme="dark"] .lib-libro { ' + oscuro + ' }',
+      ':root[data-theme="dark"] .lib-libro .lib-ficha { --acento-texto: var(--acento-t2); } :root[data-theme="dark"] .lib-libro .lib-grupo { --esc-texto: var(--esc-t2); }',
+      '.lib-libro .lib-title { pointer-events: none; }',
+      '@media (min-width: 920px) { .lib-libro { padding-right: 122px; } }',
+
+      /* Tapa de la libreta: cambia de color con la escuela de la ficha abierta */
+      '.lib-libro .lib { position: relative; gap: 0; padding: 14px; border-radius: 18px; background: var(--tapa, #46557f); box-shadow: 0 12px 26px rgba(0, 0, 0, 0.3), inset 0 0 0 2px rgba(255, 255, 255, 0.14); align-items: stretch; }',
+      '@media (min-width: 920px) { .lib-libro .lib { grid-template-columns: 345px 28px minmax(0, 1fr); align-items: stretch; min-height: 560px; } }',
+
+      /* Hojas rayadas con margen rojo */
+      '.lib-libro .lib-indice, .lib-libro .lib-ficha { position: relative; z-index: 1; min-width: 0; color: var(--tinta); background-color: var(--papel); border: 1px solid rgba(0, 0, 0, 0.25);' +
+        ' background-image: linear-gradient(90deg, transparent 52px, var(--margen) 52px, var(--margen) 54px, transparent 54px), repeating-linear-gradient(to bottom, transparent 0, transparent 27px, var(--raya) 27px, var(--raya) 28px);' +
+        ' padding: 27px 24px 28px 72px; max-height: none; top: auto; overflow: visible; }',
+      '.lib-libro .lib-indice { border-radius: 14px 2px 2px 14px; box-shadow: inset -16px 0 18px -16px rgba(0, 0, 0, 0.32); }',
+      '.lib-libro .lib-ficha { border-radius: 2px 14px 14px 2px; box-shadow: inset 16px 0 18px -16px rgba(0, 0, 0, 0.32); padding-top: 55px; }',
+
+      /* Anillos */
+      '.lib-libro .lib-anillos { display: none; }',
+      '@media (min-width: 920px) { .lib-libro .lib-anillos { display: block; position: relative; z-index: 3; margin: 0 -14px; background-image: ' + anilloV + '; background-repeat: repeat-y; background-position: center top; background-size: 56px 36px; } }',
+      '@media (max-width: 919px) {',
+      '  .lib-libro .lib { padding: 10px 10px 14px; }',
+      '  .lib-libro .lib-anillos { display: block; order: -1; height: 34px; margin: -2px 0 -20px; position: relative; z-index: 3; background-image: ' + anilloH + '; background-repeat: repeat-x; background-position: left top; background-size: 36px 34px; }',
+      '  .lib-libro .lib-indice, .lib-libro .lib-ficha { border-radius: 10px; padding: 34px 16px 28px 50px; background-image: linear-gradient(90deg, transparent 36px, var(--margen) 36px, var(--margen) 38px, transparent 38px), repeating-linear-gradient(to bottom, transparent 0, transparent 27px, var(--raya) 27px, var(--raya) 28px); }',
+      '  .lib-libro .lib-ficha { padding-top: 40px; }',
+      '}',
+
+      /* Separadores laterales por escuela */
+      '.lib-libro .lib-pestanas { display: flex; flex-direction: column; gap: 8px; }',
+      '@media (min-width: 920px) { .lib-libro .lib-pestanas { position: absolute; z-index: 2; top: 40px; right: -122px; width: 136px; } }',
+      '@media (max-width: 919px) { .lib-libro .lib-pestanas { order: -2; flex-direction: row; overflow-x: auto; padding: 2px 2px 14px; } .lib-libro .lib[data-ficha="1"] .lib-pestanas { display: none; } }',
+      '.lib-tab { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-height: 40px; padding: 8px 10px 8px 14px; text-align: left; cursor: pointer; color: #2b2b2b; background: var(--tab, #e6e7ea); border: 1.5px solid rgba(0, 0, 0, 0.5); border-left: 0; border-radius: 0 12px 12px 0; box-shadow: 2px 3px 5px rgba(0, 0, 0, 0.25); font: 700 13px/1.15 var(--body); transition: transform 0.12s ease; }',
+      '.lib-tab[aria-pressed="true"] { background: var(--tab-sel, #c9cbd1); transform: translateX(10px); box-shadow: 3px 4px 8px rgba(0, 0, 0, 0.35); }',
+      '.lib-tab:hover { filter: brightness(1.04); }',
+      '.lib-tab:focus-visible { outline: 3px solid #fff; outline-offset: 1px; }',
+      '.lib-tab-n { flex: none; min-width: 22px; height: 22px; padding: 0 5px; border-radius: 11px; background: rgba(255, 255, 255, 0.75); font: 700 12px/22px var(--body); text-align: center; }',
+      '@media (max-width: 919px) { .lib-tab { flex: none; border-left: 1.5px solid rgba(0, 0, 0, 0.5); border-radius: 10px; } .lib-tab[aria-pressed="true"] { transform: none; } }',
+
+      /* Índice (hoja izquierda) */
+      '.lib-libro .lib-ind-titulo { display: inline-block; margin: 0 0 4px; font: 700 40px/1 var(--manuscrita); text-transform: none; color: var(--p-azul); background: linear-gradient(transparent 68%, var(--mk-amarillo) 68%, var(--mk-amarillo) 92%, transparent 92%); padding: 0 6px; }',
+      '.lib-libro .lib-buscar { border: none; border-bottom: 2px solid var(--tinta-suave); border-radius: 0; background: transparent; color: var(--tinta); font: 500 23px/1.1 var(--manuscrita); padding: 4px 2px; margin: 6px 0 4px; }',
+      '.lib-libro .lib-buscar::placeholder { color: var(--tinta-suave); }',
+      '.lib-libro .lib-grupo h3 { display: inline-block; margin: 12px 0 2px; padding-bottom: 0; font: 700 25px/1.05 var(--manuscrita); letter-spacing: 0; text-transform: none; color: var(--esc-texto, var(--tinta)); border-bottom: 3px solid var(--esc, var(--tinta)); }',
+      '.lib-libro .lib-cuenta { font: 500 20px var(--manuscrita); color: var(--tinta-suave); }',
+      '.lib-libro .lib-item { display: flex; align-items: baseline; gap: 6px; width: 100%; padding: 0 4px; border: none; border-radius: 0; background: transparent; color: var(--tinta); font: 400 17px/28px var(--body); text-align: left; cursor: pointer; }',
+      '.lib-libro .lib-item:hover .lib-item-nombre { text-decoration: underline; text-decoration-color: var(--esc, var(--tinta)); text-decoration-thickness: 2px; }',
+      '.lib-libro .lib-item[aria-current="true"] { background: transparent; }',
+      '.lib-libro .lib-item[aria-current="true"] .lib-item-nombre { font-weight: 700; background: linear-gradient(transparent 18%, var(--mk-amarillo) 18%, var(--mk-amarillo) 90%, transparent 90%); padding: 0 4px; }',
+      '.lib-libro .lib-puntos { flex: 1 1 auto; min-width: 12px; border-bottom: 2px dotted var(--tinta-suave); transform: translateY(-5px); opacity: 0.7; }',
+      '.lib-libro .lib-pagn { font: 500 22px/1 var(--manuscrita); color: var(--tinta-suave); }',
+      '.lib-libro .lib-vacio { color: var(--tinta-suave); font-style: italic; }',
+
+      /* Botones sobre papel */
+      '.lib-libro .lib-btn { background: var(--papel); color: var(--tinta); border-color: var(--tinta); }',
+      '.lib-libro .lib-btn:hover { background: var(--mk-amarillo); color: #2b2b2b; }',
+      '.lib-libro .lib-btn.lib-primario { background: var(--p-azul); color: var(--on-azul); border-color: transparent; }',
+      '.lib-libro .lib-btn.lib-primario:hover { background: var(--p-azul); opacity: 0.92; color: var(--on-azul); }',
+      '.lib-libro .lib-nueva { margin: 10px 0 6px; }',
+
+      /* Ficha (hoja derecha) */
+      '.lib-cinta { position: absolute; top: -13px; left: 50%; width: 120px; height: 30px; transform: translateX(-50%) rotate(-2deg); background: var(--acento-suave, rgba(200, 200, 200, 0.5)); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.22); pointer-events: none; z-index: 2; }',
+      '.lib-libro .lib-encabezado { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; }',
+      '.lib-libro .lib-ficha h2 { margin: 0; font-weight: 400; line-height: 1.16; }',
+      '.lib-nombre { font: 400 clamp(32px, 4.2vw, 50px)/1.2 Anton, Impact, "Arial Narrow", sans-serif; text-transform: uppercase; letter-spacing: 0.01em; padding: 0 0.16em; background: linear-gradient(transparent 60%, var(--acento-suave, #fff07a) 60%, var(--acento-suave, #fff07a) 93%, transparent 93%); -webkit-box-decoration-break: clone; box-decoration-break: clone; }',
+      '.lib-pag { flex: none; padding-top: 6px; font: 500 24px/1 var(--manuscrita); color: var(--tinta-suave); white-space: nowrap; }',
+      '.lib-libro .lib-escuela { display: inline-flex; margin: 8px 0 0; font: 700 28px/1 var(--manuscrita); color: var(--acento-texto, var(--tinta)); transform: rotate(-1deg); }',
+      '.lib-libro .lib-meta { margin: 6px 0 26px; font: 400 12px/1.4 var(--body); color: var(--tinta-suave); }',
+
+      '.lib-libro .lib-sec { margin: 0 0 28px; }',
+      '.lib-libro .lib-sec h4 { display: inline-block; margin: 0 0 6px; font: 700 27px/28px var(--manuscrita); letter-spacing: 0; text-transform: none; color: var(--pluma, var(--tinta)); text-decoration: underline; text-decoration-color: var(--pluma, var(--tinta)); text-decoration-thickness: 3px; text-underline-offset: 6px; text-decoration-skip-ink: none; }',
+      '.lib-libro .lib-num { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; margin-right: 8px; border: 2.5px solid var(--pluma, var(--tinta)); border-radius: 50%; font: 700 19px/1 var(--manuscrita); text-decoration: none; vertical-align: 1px; }',
+      '.lib-libro .lib-sec[data-s="2"] { --pluma: var(--p-azul); }',
+      '.lib-libro .lib-sec[data-s="3"] { --pluma: var(--p-verde); }',
+      '.lib-libro .lib-sec[data-s="4"] { --pluma: var(--p-rojo); }',
+      '.lib-libro .lib-sec[data-s="4"] h4 { text-decoration-style: wavy; text-decoration-thickness: 2px; }',
+      '.lib-libro .lib-sec[data-s="5"] { --pluma: var(--acento-texto, var(--p-naranja)); }',
+      '.lib-libro .lib-sec[data-s="6"] { --pluma: var(--p-morado); }',
+      '.lib-libro .lib-sec[data-s="7"] { --pluma: var(--p-turquesa); }',
+      '.lib-libro .lib-sec[data-s="8"] { --pluma: var(--p-azul); }',
+      '.lib-libro .lib-sec[data-s="9"] { --pluma: var(--p-verde); }',
+      '.lib-libro .lib-sec[data-s="10"] { --pluma: var(--p-naranja); }',
+      '.lib-libro .lib-sec p, .lib-libro .lib-sec li { margin: 0 0 2px; font: 400 17px/28px var(--body); color: var(--tinta); }',
+      '.lib-libro .lib-sec ul { margin: 0; padding-left: 22px; list-style: square; }',
+      '.lib-libro .lib-sec a { color: var(--p-azul); text-decoration-thickness: 2px; text-underline-offset: 3px; font-weight: 600; }',
+
+      /* Subrayado con marcatextos */
+      '.lib-mk { padding: 0 5px; color: inherit; font-weight: 700; background: linear-gradient(transparent 16%, var(--mk-amarillo) 16%, var(--mk-amarillo) 90%, transparent 90%); -webkit-box-decoration-break: clone; box-decoration-break: clone; }',
+      '.lib-mk.verde { background: linear-gradient(transparent 16%, var(--mk-verde) 16%, var(--mk-verde) 90%, transparent 90%); }',
+      '.lib-mk.rosa { background: linear-gradient(transparent 16%, var(--mk-rosa) 16%, var(--mk-rosa) 90%, transparent 90%); }',
+      '.lib-mk.acento { background: linear-gradient(transparent 16%, var(--acento-suave, #fff07a) 16%, var(--acento-suave, #fff07a) 90%, transparent 90%); }',
+
+      /* Pseudocódigo y código como tarjeta */
+      '.lib-libro .lib-code { margin: 4px 0 6px; padding: 12px 14px; border: none; border-left: 5px solid var(--p-turquesa); border-radius: 4px 8px 8px 4px; background: linear-gradient(rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.05)), var(--papel); color: var(--tinta); font: 400 13.5px/1.55 ui-monospace, Menlo, Consolas, monospace; }',
+
+      /* Reflexiones como notas adhesivas */
+      '.lib-posts { display: grid; gap: 22px 18px; grid-template-columns: minmax(0, 1fr); margin-top: 8px; }',
+      '@media (min-width: 1180px) { .lib-posts { grid-template-columns: 1fr 1fr; } .lib-post:nth-child(4) { grid-column: 1 / -1; } }',
+      '.lib-post { position: relative; padding: 18px 16px 14px; border-radius: 3px 3px 16px 3px; box-shadow: 0 4px 9px rgba(0, 0, 0, 0.22); color: #2b2b2b; }',
+      '.lib-post::before { content: ""; position: absolute; top: -9px; left: 50%; width: 64px; height: 18px; transform: translateX(-50%) rotate(-2deg); background: rgba(255, 255, 255, 0.55); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15); }',
+      '.lib-post.amarillo { background: #fff59d; transform: rotate(-0.6deg); }',
+      '.lib-post.rosa { background: #f8bbd9; transform: rotate(0.5deg); }',
+      '.lib-post.azul { background: #b3e5fc; transform: rotate(-0.4deg); }',
+      '.lib-post.verde { background: #c8e6c9; transform: rotate(0.6deg); }',
+      '.lib-libro .lib-post .lib-q { margin: 0 0 8px; font: 700 21px/1.12 var(--manuscrita); font-style: normal; color: #2b2b2b; white-space: normal; }',
+      '.lib-libro .lib-post p { color: #2b2b2b; font: 400 16px/24px var(--body); white-space: pre-line; }',
+      '.lib-libro .lib-post .lib-vacio { color: rgba(0, 0, 0, 0.45); }',
+      '.lib-libro .lib-post .lib-code { background: rgba(255, 255, 255, 0.55); color: #2b2b2b; border-left-color: rgba(0, 0, 0, 0.4); }',
+
+      /* Comentarios del profesor: a pluma roja, como una corrección */
+      '.lib-libro .lib-ficha .coments { margin-top: 30px; padding-top: 10px; border-top: 4px double var(--p-rojo); }',
+      '.lib-libro .lib-ficha .coments h4 { display: block; margin: 0 0 6px; font: 700 28px/1.1 var(--manuscrita); letter-spacing: 0; text-transform: none; color: var(--p-rojo); text-decoration: none; }',
+      '.lib-libro .lib-ficha .coment { margin: 0 0 12px; padding: 2px 4px 2px 14px; background: var(--papel); border: none; border-left: 4px solid var(--p-rojo); border-radius: 0; }',
+      '.lib-libro .lib-ficha .coments .coment-texto { font: 500 23px/1.18 var(--manuscrita); color: var(--p-rojo); }',
+      '.lib-libro .lib-ficha .coment-meta { opacity: 1; color: var(--tinta-suave); }',
+      '.lib-libro .lib-ficha .coments textarea { background: var(--papel); color: var(--tinta); border-color: var(--tinta-suave); }',
+
+      /* Formulario sobre la hoja */
+      '.lib-libro .lib-form h2 { font: 700 40px/1 var(--manuscrita); text-transform: none; color: var(--p-azul); }',
+      '.lib-libro .lib-campo > label, .lib-libro .lib-campo > .lib-etq { font: 700 24px/1.1 var(--manuscrita); letter-spacing: 0; color: var(--p-azul); }',
+      '.lib-libro .lib-campo input[type="text"], .lib-libro .lib-campo textarea, .lib-libro .lib-campo select { background: var(--papel); color: var(--tinta); border-color: var(--tinta-suave); }',
+      '.lib-libro .lib-sub { font: 700 21px/1.15 var(--manuscrita); letter-spacing: 0; text-transform: none; color: var(--p-naranja); }',
+      '.lib-libro .lib-meta { color: var(--tinta-suave); }'
+    ].join('\n');
+  }
+
   // ---------- Utilidades ----------
+  if (!document.querySelector('link[data-libreta-fuente]')) {
+    var fuente = document.createElement('link');
+    fuente.rel = 'stylesheet';
+    fuente.href = 'https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap';
+    fuente.setAttribute('data-libreta-fuente', '1');
+    document.head.appendChild(fuente);
+  }
+
   function norm(s) {
     return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   }
 
+  // Cada escuela conocida tiene su propio color fijo (así los separadores nunca se repiten ni cambian).
+  // Las escuelas que crees tú reciben un color de la paleta de forma estable.
+  var COLORES_ESCUELA = {
+    'divide y venceras': '#2b8cf0',
+    'programacion dinamica': '#e0951a',
+    'voraces': '#3a7d65',
+    'backtracking': '#cf4a1f',
+    'fuerza bruta': '#a65d1a',
+    'ramificacion y poda': '#0097b2',
+    'reducir y venceras': '#c96ae8'
+  };
+
   function colorDe(escuela) {
-    var n = 0, t = norm(escuela);
+    var t = norm(escuela);
+    if (t === norm(SIN_CLASIFICAR)) return '#8a8f98';
+    if (COLORES_ESCUELA[t]) return COLORES_ESCUELA[t];
+    var n = 0;
     for (var i = 0; i < t.length; i++) n = (n * 31 + t.charCodeAt(i)) % 9973;
     return PALETA[n % PALETA.length];
+  }
+
+  function hexRgb(hex) {
+    var t = String(hex).replace('#', '');
+    return [parseInt(t.slice(0, 2), 16), parseInt(t.slice(2, 4), 16), parseInt(t.slice(4, 6), 16)];
+  }
+  function rgba(hex, a) { var c = hexRgb(hex); return 'rgba(' + c[0] + ', ' + c[1] + ', ' + c[2] + ', ' + a + ')'; }
+  function aclarar(hex, t) {
+    var c = hexRgb(hex).map(function (v) { return Math.round(v + (255 - v) * t); });
+    return 'rgb(' + c.join(', ') + ')';
+  }
+  function oscurecer(hex, t) {
+    var c = hexRgb(hex).map(function (v) { return Math.round(v * (1 - t)); });
+    return 'rgb(' + c.join(', ') + ')';
   }
 
   // Solo se muestran como enlace las direcciones http o https (nada de javascript: ni otras).
@@ -218,7 +407,20 @@
   }
 
   function seccion(num, titulo, hijos) {
-    return h('div', { className: 'lib-sec' }, h('h4', null, num + '. ' + titulo), hijos);
+    return h('div', { className: 'lib-sec', 'data-s': String(num) },
+      h('h4', null, h('span', { className: 'lib-num' }, num + '.'), ' ' + titulo),
+      hijos);
+  }
+
+  // Nota adhesiva para las reflexiones.
+  function postit(color, pregunta, contenido) {
+    return h('div', { className: 'lib-post ' + color },
+      h('p', { className: 'lib-q' }, pregunta),
+      contenido);
+  }
+
+  function marca(valor, clase) {
+    return lleno(valor) ? h('mark', { className: 'lib-mk ' + clase }, valor) : vacio();
   }
 
   function mensajeDeCarga(e) {
@@ -447,6 +649,7 @@
     var s7 = useState(false); var refrescando = s7[0], setRefrescando = s7[1];
     var s8 = useState(null); var modo = s8[0], setModo = s8[1];          // null | { id: null } (nueva) | { id } (editar)
     var s9 = useState(false); var faltaAjuste = s9[0], setFaltaAjuste = s9[1];
+    var s10 = useState(null); var escuelaSel = s10[0], setEscuelaSel = s10[1];   // separador elegido (null = todas)
 
     function traer() {
       return Promise.all([
@@ -581,24 +784,40 @@
     }
 
     // ----- Índice agrupado por escuela de pensamiento -----
+    function porNombre(a, b) { return norm(a.nombre) < norm(b.nombre) ? -1 : (norm(a.nombre) > norm(b.nombre) ? 1 : 0); }
+    function porEscuela(a, b) {
+      if (a === SIN_CLASIFICAR) return 1;
+      if (b === SIN_CLASIFICAR) return -1;
+      return norm(a) < norm(b) ? -1 : (norm(a) > norm(b) ? 1 : 0);
+    }
+    var todos = {};
+    algoritmos.forEach(function (a) {
+      var e = a.escuela || SIN_CLASIFICAR;
+      if (!todos[e]) todos[e] = [];
+      todos[e].push(a);
+    });
+    var escuelasTodas = Object.keys(todos).sort(porEscuela);
+    var pagina = {}, nPag = 0;
+    escuelasTodas.forEach(function (e) {
+      todos[e].sort(porNombre);
+      todos[e].forEach(function (a) { pagina[a.id] = ++nPag; });   // número de página, como en una libreta
+    });
+    var escuelaAct = (escuelaSel && todos[escuelaSel]) ? escuelaSel : null;
+
     var q = norm(busqueda.trim());
     var visibles = algoritmos.filter(function (a) {
-      return !q || norm(a.nombre).indexOf(q) >= 0 || norm(a.escuela).indexOf(q) >= 0;
+      var e = a.escuela || SIN_CLASIFICAR;
+      if (escuelaAct && e !== escuelaAct) return false;
+      return !q || norm(a.nombre).indexOf(q) >= 0 || norm(e).indexOf(q) >= 0;
     });
     var grupos = {};
     visibles.forEach(function (a) {
-      var e = a.escuela || 'Sin clasificar';
+      var e = a.escuela || SIN_CLASIFICAR;
       if (!grupos[e]) grupos[e] = [];
       grupos[e].push(a);
     });
-    var escuelas = Object.keys(grupos).sort(function (a, b) {
-      if (a === 'Sin clasificar') return 1;
-      if (b === 'Sin clasificar') return -1;
-      return norm(a) < norm(b) ? -1 : (norm(a) > norm(b) ? 1 : 0);
-    });
-    escuelas.forEach(function (e) {
-      grupos[e].sort(function (a, b) { return norm(a.nombre) < norm(b.nombre) ? -1 : (norm(a.nombre) > norm(b.nombre) ? 1 : 0); });
-    });
+    var escuelas = Object.keys(grupos).sort(porEscuela);
+    escuelas.forEach(function (e) { grupos[e].sort(porNombre); });
 
     var indice = h('nav', { className: 'lib-indice', 'aria-label': 'Índice de algoritmos' },
       h('h2', { className: 'lib-ind-titulo' }, 'Índice'),
@@ -622,9 +841,8 @@
         : (visibles.length === 0
             ? h('p', { className: 'lib-vacio' }, 'No hay resultados para "' + busqueda.trim() + '".')
             : escuelas.map(function (esc) {
-                return h('div', { key: esc, className: 'lib-grupo' },
+                return h('div', { key: esc, className: 'lib-grupo', style: { '--esc': colorDe(esc), '--esc-t1': oscurecer(colorDe(esc), 0.35), '--esc-t2': aclarar(colorDe(esc), 0.45) } },
                   h('h3', null,
-                    h('span', { className: 'lib-punto', style: { background: colorDe(esc) } }),
                     esc,
                     h('span', { className: 'lib-cuenta' }, ' (' + grupos[esc].length + ')')),
                   grupos[esc].map(function (a) {
@@ -632,7 +850,10 @@
                       key: a.id, className: 'lib-item',
                       'aria-current': sel === a.id ? 'true' : 'false',
                       onClick: function () { elegir(a.id); }
-                    }, a.nombre);
+                    },
+                      h('span', { className: 'lib-item-nombre' }, a.nombre),
+                      h('span', { className: 'lib-puntos', 'aria-hidden': 'true' }),
+                      h('span', { className: 'lib-pagn' }, String(pagina[a.id])));
                   })
                 );
               }))
@@ -654,7 +875,12 @@
         meta += ' \u00B7 Editada: ' + formatoFecha(alg.actualizada_en);
       }
 
-      ficha = h('section', { className: 'lib-ficha', key: alg.id, 'aria-label': 'Ficha técnica de ' + alg.nombre },
+      var colorEsc = colorDe(alg.escuela);
+      ficha = h('section', {
+        className: 'lib-ficha', key: alg.id, 'aria-label': 'Ficha técnica de ' + alg.nombre,
+        style: { '--acento': colorEsc, '--acento-suave': rgba(colorEsc, 0.42), '--acento-t1': oscurecer(colorEsc, 0.38), '--acento-t2': aclarar(colorEsc, 0.45) }
+      },
+        h('span', { className: 'lib-cinta', 'aria-hidden': 'true' }),
         h('button', { className: 'lib-btn lib-volver', onClick: function () { setSel(null); } }, '\u2190 Índice'),
         rol === 'camila'
           ? h(Acciones, {
@@ -663,20 +889,20 @@
               onBorrar: function () { return borrarFicha(alg.id); }
             })
           : null,
-        h('h2', null, alg.nombre),
-        h('p', { className: 'lib-escuela' },
-          h('span', { className: 'lib-punto', style: { background: colorDe(alg.escuela) } }),
-          alg.escuela),
+        h('div', { className: 'lib-encabezado' },
+          h('h2', null, h('span', { className: 'lib-nombre' }, alg.nombre)),
+          h('span', { className: 'lib-pag' }, 'pág. ' + pagina[alg.id])),
+        h('p', { className: 'lib-escuela' }, alg.escuela),
         h('p', { className: 'lib-meta' }, meta),
 
         seccion(2, 'Creador y fecha de creación', parrafo(alg.creador)),
         seccion(3, 'Utilidad principal o aplicaciones', parrafo(alg.utilidad)),
         seccion(4, 'Restricciones o limitaciones', parrafo(alg.restricciones)),
-        seccion(5, 'Escuela de pensamiento', h('p', null, alg.escuela)),
+        seccion(5, 'Escuela de pensamiento', h('p', null, h('mark', { className: 'lib-mk acento' }, alg.escuela))),
         seccion(6, 'Orden de complejidad',
           h('ul', null,
-            h('li', null, h('strong', null, 'Temporal: '), lleno(alg.complejidad_temporal) ? alg.complejidad_temporal : vacio()),
-            h('li', null, h('strong', null, 'Espacial: '), lleno(alg.complejidad_espacial) ? alg.complejidad_espacial : vacio()))),
+            h('li', null, h('strong', null, 'Temporal: '), marca(alg.complejidad_temporal, 'amarillo')),
+            h('li', null, h('strong', null, 'Espacial: '), marca(alg.complejidad_espacial, 'rosa')))),
         seccion(7, 'Descripción general (pseudocódigo)',
           lleno(alg.pseudocodigo)
             ? h('pre', { className: 'lib-code' }, alg.pseudocodigo)
@@ -692,18 +918,18 @@
                     ? h('a', { href: href, target: '_blank', rel: 'noopener noreferrer' }, texto)
                     : h('span', null, texto + ' (liga no válida)'));
               }))),
-        seccion(9, 'Paradigma de programación conveniente', parrafo(alg.paradigma)),
+        seccion(9, 'Paradigma de programación conveniente', lleno(alg.paradigma) ? h('p', null, h('mark', { className: 'lib-mk verde' }, alg.paradigma)) : parrafo(alg.paradigma)),
         seccion(10, 'Reflexiones personales',
-          h('div', null,
-            h('p', { className: 'lib-q' }, PREGUNTAS.comprension), parrafo(alg.reflexion_comprension),
-            h('p', { className: 'lib-q' }, PREGUNTAS.uso), parrafo(alg.reflexion_uso),
-            h('p', { className: 'lib-q' }, PREGUNTAS.reto), parrafo(alg.reflexion_reto),
-            h('p', { className: 'lib-q' }, PREGUNTAS.implementacion),
-            (lleno(alg.codigo) || lleno(alg.reflexion_implementacion))
-              ? h('div', null,
-                  lleno(alg.codigo) ? h('pre', { className: 'lib-code' }, alg.codigo) : null,
-                  lleno(alg.reflexion_implementacion) ? h('p', null, alg.reflexion_implementacion) : null)
-              : h('p', { className: 'lib-vacio' }, 'Sin completar'))),
+          h('div', { className: 'lib-posts' },
+            postit('amarillo', PREGUNTAS.comprension, parrafo(alg.reflexion_comprension)),
+            postit('rosa', PREGUNTAS.uso, parrafo(alg.reflexion_uso)),
+            postit('azul', PREGUNTAS.reto, parrafo(alg.reflexion_reto)),
+            postit('verde', PREGUNTAS.implementacion,
+              (lleno(alg.codigo) || lleno(alg.reflexion_implementacion))
+                ? h('div', null,
+                    lleno(alg.codigo) ? h('pre', { className: 'lib-code' }, alg.codigo) : null,
+                    lleno(alg.reflexion_implementacion) ? h('p', null, alg.reflexion_implementacion) : null)
+                : h('p', { className: 'lib-vacio' }, 'Sin completar')))),
 
         h(Comentarios, {
           lista: lista,
@@ -730,7 +956,25 @@
         }));
     }
 
-    return h('div', null,
+    // Separadores laterales (uno por escuela) y color de la tapa según la ficha abierta.
+    var pestanas = h('nav', { className: 'lib-pestanas', 'aria-label': 'Separadores por escuela' },
+      h('button', {
+        className: 'lib-tab', 'aria-pressed': escuelaAct ? 'false' : 'true',
+        style: { '--tab': aclarar('#8a8f98', 0.6), '--tab-sel': aclarar('#8a8f98', 0.35) },
+        onClick: function () { setEscuelaSel(null); }
+      }, h('span', null, 'Todas'), h('span', { className: 'lib-tab-n' }, String(algoritmos.length))),
+      escuelasTodas.map(function (esc) {
+        return h('button', {
+          key: esc, className: 'lib-tab', 'aria-pressed': escuelaAct === esc ? 'true' : 'false',
+          style: { '--tab': aclarar(colorDe(esc), 0.6), '--tab-sel': aclarar(colorDe(esc), 0.32) },
+          onClick: function () { setEscuelaSel(esc); }
+        }, h('span', null, esc), h('span', { className: 'lib-tab-n' }, String(todos[esc].length)));
+      })
+    );
+    var escTapa = alg ? alg.escuela : (inicialModo ? inicialModo.escuela : escuelaAct);
+    var tapa = escTapa ? oscurecer(colorDe(escTapa), 0.42) : '#46557f';
+
+    return h('div', { className: 'lib-libro' },
       h('div', { className: 'lib-head' },
         h('div', null,
           h('h1', { className: 'lib-title' }, 'Libreta'),
@@ -739,7 +983,11 @@
           aviso ? h('span', { className: 'warn', role: 'status' }, aviso + ' ') : null,
           h('button', { className: 'lib-btn', disabled: refrescando, onClick: actualizar }, refrescando ? 'Actualizando...' : 'Actualizar'))
       ),
-      h('div', { className: 'lib', 'data-ficha': (alg || enEdicion) ? '1' : '0' }, indice, ficha)
+      h('div', { className: 'lib', 'data-ficha': (alg || enEdicion) ? '1' : '0', style: { '--tapa': tapa } },
+        indice,
+        h('div', { className: 'lib-anillos', 'aria-hidden': 'true' }),
+        ficha,
+        pestanas)
     );
   }
 

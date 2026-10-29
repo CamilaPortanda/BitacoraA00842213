@@ -75,6 +75,10 @@
     gap: 16px;
     margin-bottom: 18px;
   }
+
+     /* Los títulos grandes son decorativos: no deben tapar los botones que quedan arriba o abajo. */
+  .month-title, .year, .arrow-mark, .login-title { pointer-events: none; }
+
   .month-title {
     font-family: var(--display);
     font-weight: 400;
